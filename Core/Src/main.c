@@ -47,6 +47,12 @@ I2S_HandleTypeDef hi2s3;
 
 SPI_HandleTypeDef hspi1;
 
+/* 
+  Page 31 of the datasheet has information on each timer
+
+ */
+TIM_HandleTypeDef tim3handle;
+
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -68,52 +74,80 @@ void MX_USB_HOST_Process(void);
 
 /* USER CODE END 0 */
 
+void ConfigureGPIOs()
+{
+  // https://embetronicx.com/tutorials/microcontrollers/stm32/stm32-gpio-tutorial/
+  // 5 GPIO ports available - A/B/C/D/E
+  // Below line enables clock for IO Port A
+  SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_GPIODEN);
+  /* 
+    Each GPIO Port has 16 pins
+    Ports have an associated MODER register
+    Using the MODER register, each pin has 2 bits dedicated to setting the Mode
+    Mode bits are:
+      * 00 - Input (reset state)
+      * 01 - General Purpose Output Mode
+      * 10 - Alternate Function Mode
+      * 11 - Analog Mode
+   */
+
+  /* Configuring GPIO's
+   * Port Mode Register(GPIOx_MODER)
+   * Port Output Type Register (GPIOx_OTYPER)
+   * Port Output speed register (GPIOx_OSPEEDR)
+   * Port Pullup-Pulldown Register (GPIO_PUPDR)
+  */
+
+  // Inbuilt LEDs are on Port D, pins 13/12/14/15
+  // This should set the LEDs as OUTPUT
+  GPIOD->MODER = 0x55400000;
+  /* Input/Output Registers
+    GPIOx_IDR / GPIOx_ODR
+    Bits 0-15 are used to read/write values from desired pins.
+    Input data register is read only.
+    Bits 16-31 are reserved
+   */
+  GPIOD->ODR = 0xF000;
+}
+
+void ConfigureTimers() {
+  // https://www.digikey.com.au/en/maker/projects/getting-started-with-stm32-timers-and-timer-interrupts/d08e6493cefa486fb1e79c43c0b08cc6
+  // https://embeddeddesign.org/stm32f4-timer-interrupt/
+  // uint32_t aPrescalerValue = SystemCoreClock / ((256 + 1) / 1); // Determine better values
+  tim3handle.Instance = TIM3;
+  tim3handle.Init.Prescaler = 168000000;
+  tim3handle.Init.Period = 1;
+}
+
+void ToggleLEDs()
+{
+  if (GPIOD->ODR) {
+    GPIOD->ODR = 0;
+  } else {
+    GPIOD->ODR = 0x55400000;
+  }
+}
+
 /**
   * @brief  The application entry point.
   * @retval int
   */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
-
-  /* USER CODE END 1 */
-
-  /* MCU Configuration--------------------------------------------------------*/
-
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
-
-  /* USER CODE BEGIN Init */
-
-  /* USER CODE END Init */
-
-  /* Configure the system clock */
   SystemClock_Config();
-
-  /* USER CODE BEGIN SysInit */
-
-  /* USER CODE END SysInit */
-
-  /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_I2C1_Init();
   MX_I2S3_Init();
   MX_SPI1_Init();
   MX_USB_HOST_Init();
-  /* USER CODE BEGIN 2 */
 
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
+  ConfigureGPIOs();
+  ConfigureTimers();
   while (1)
   {
-    /* USER CODE END WHILE */
     MX_USB_HOST_Process();
-
-    /* USER CODE BEGIN 3 */
   }
-  /* USER CODE END 3 */
 }
 
 /**
