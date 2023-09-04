@@ -24,6 +24,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx.h"
+#define USE_STM324xG_EVAL 1
 
 #if defined (USE_STM324xG_EVAL)
   #include "stm324xg_eval.h"

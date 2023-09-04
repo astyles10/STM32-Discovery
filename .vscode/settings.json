@@ -5,6 +5,8 @@
   "files.associations": {
     "*.ino": "cpp",
     "*.append": "jsonc",
-    "main.h": "c"
+    "main.h": "c",
+    "stm32f4xx_hal_tim.h": "c",
+    "stm32f4xx_hal.h": "c"
   }
 }

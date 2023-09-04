@@ -3,7 +3,7 @@
     {
       "showDevDebugOutput": "parsed",
       "cwd": "${workspaceRoot}",
-      "executable": "./build/.elf",
+      "executable": "./build/HelloBoardMx.elf",
       "name": "Debug STM32",
       "request": "launch",
       "type": "cortex-debug",
