@@ -31,4 +31,9 @@
 *.out
 *.app
 
+*.lst
+*.elf
+*.hex
+*.map
+
 build

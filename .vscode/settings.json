@@ -1,7 +1,7 @@
 {
   "cortex-debug.armToolchainPath": "/usr/bin",
-  "cortex-debug.openocdPath": "/usr/bin/openocd",
-  "stm32-for-vscode.openOCDPath": false,
+  "cortex-debug.openocdPath": "/usr/local/bin/openocd",
+  "stm32-for-vscode.openOCDPath": "/usr/local/bin/openocd",
   "files.associations": {
     "*.ino": "cpp",
     "*.append": "jsonc",

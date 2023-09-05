@@ -165,6 +165,7 @@ int main(void)
   uint16_t timer_val = 0;
   uart_buf_len = snprintf(uart_buf, 50, "Serial comms started!\r\n\n");
   HAL_UART_Transmit(&huart2, (uint8_t *)uart_buf, uart_buf_len, 100);
+  HAL_TIM_Base_Start_IT(&htim3);
   /* USER CODE END 2 */
 
   /* Infinite loop */
