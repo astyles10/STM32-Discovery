@@ -14,3 +14,6 @@ https://microcontrollerslab.com/uart-usart-communication-stm32f4-discovery-board
 * Sensors
 https://www.digikey.com.au/en/products/detail/cui-devices/CUSA-TR80-065-2000-TH68/16579210
 https://www.digikey.com.au/en/products/detail/pui-audio-inc/UTR-1440K-TT-R/6071962
+
+* Bluetooth
+https://github.com/Jakeler/ble-serial
