@@ -52,7 +52,7 @@ TIM_HandleTypeDef htim3;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+uint8_t UART2_rxBuf[12] = {0};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -63,6 +63,7 @@ static void MX_I2S3_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_NVIC_Init(void);
 void MX_USB_HOST_Process(void);
 
 /* USER CODE BEGIN PFP */
@@ -108,19 +109,18 @@ void ConfigureGPIOs()
   GPIOD->ODR = 0xF000;
 }
 
-void ConfigureTimers() {
-  // https://www.digikey.com.au/en/maker/projects/getting-started-with-stm32-timers-and-timer-interrupts/d08e6493cefa486fb1e79c43c0b08cc6
-  // https://embeddeddesign.org/stm32f4-timer-interrupt/
-  // uint32_t aPrescalerValue = SystemCoreClock / ((256 + 1) / 1); // Determine better values
-}
-
-void ToggleLEDs()
-{
+void ToggleLEDs() {
   if (GPIOD->ODR) {
     GPIOD->ODR = 0;
   } else {
     GPIOD->ODR = 0xF000;
   }
+}
+
+void InitPeripherals() {
+  char aSetBaudBuf[17] = {0};
+  int aBufLen = snprintf(aSetBaudBuf, 17, "AT+BAUD=%lu\r\n", (uint32_t)115200);
+  HAL_UART_Transmit(&huart2, (uint8_t *)aSetBaudBuf, aBufLen, 100);
 }
 /* USER CODE END 0 */
 
@@ -158,13 +158,18 @@ int main(void)
   MX_USB_HOST_Init();
   MX_TIM3_Init();
   MX_USART2_UART_Init();
+
+  /* Initialize interrupts */
+  MX_NVIC_Init();
   /* USER CODE BEGIN 2 */
   ConfigureGPIOs();
   char uart_buf[50];
   int uart_buf_len = 0;
-  uint16_t timer_val = 0;
-  uart_buf_len = snprintf(uart_buf, 50, "Serial comms started!\r\n\n");
-  HAL_UART_Transmit(&huart2, (uint8_t *)uart_buf, uart_buf_len, 100);
+  InitPeripherals();
+  huart2.Instance->BRR;
+  uart_buf_len = snprintf(uart_buf, 50, "Serial comms started!\r\n");
+  HAL_UART_Transmit_IT(&huart2, (uint8_t *)uart_buf, uart_buf_len);
+  HAL_UART_Receive_IT(&huart2, UART2_rxBuf, 12);
   HAL_TIM_Base_Start_IT(&htim3);
   /* USER CODE END 2 */
 
@@ -172,7 +177,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    
     /* USER CODE END WHILE */
     MX_USB_HOST_Process();
 
@@ -224,6 +228,17 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief NVIC Configuration.
+  * @retval None
+  */
+static void MX_NVIC_Init(void)
+{
+  /* USART2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(USART2_IRQn);
 }
 
 /**
@@ -393,7 +408,7 @@ static void MX_USART2_UART_Init(void)
 
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
+  huart2.Init.BaudRate = 9600;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
@@ -507,6 +522,17 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+  if (htim == &htim3) {
+    ToggleLEDs();
+    // HAL_UART_Transmit(&huart2, (uint8_t *)"LEDs toggled!\r\n", 16, 10);
+  }
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+  HAL_UART_Transmit(&huart2, UART2_rxBuf, 12, 100);
+  HAL_UART_Receive_IT(&huart2, UART2_rxBuf, 12);
+}
 
 /* USER CODE END 4 */
 
